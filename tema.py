@@ -107,3 +107,5 @@ sair()
 entrar()
 entrar()
 entrar()
+
+print("fim da aula")

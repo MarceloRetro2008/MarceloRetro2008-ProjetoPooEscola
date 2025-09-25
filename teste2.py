@@ -170,4 +170,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nEncerrando. Até logo!")
         sys.exit(0)
-
+bojekefugsdubiishubaiu
