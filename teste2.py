@@ -1,173 +1,230 @@
-import random
+import os
 import sys
-from typing import Tuple
+import time
 
 
-def linha():
-    print("\n" + "-" * 50 + "\n")
+# ==========================
+#  Motor simples de Visual Novel (console)
+# ==========================
+TYPE_SPEED = 0.015  # menor = mais rápido; 0 para sem efeito de máquina de escrever
 
 
-def perguntar_sim_nao(pergunta: str) -> bool:
+def clear():
+    """Limpa a tela do console (Windows/Unix)."""
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def typewriter(text: str, speed: float = TYPE_SPEED):
+    """Imprime o texto com efeito de máquina de escrever."""
+    if speed <= 0:
+        print(text)
+        return
+    for ch in text:
+        print(ch, end="", flush=True)
+        time.sleep(speed)
+    print()
+
+
+def say(speaker: str, text: str, speed: float = TYPE_SPEED):
+    """Mostra a fala de um personagem."""
+    if speaker:
+        prefix = f"{speaker}: "
+    else:
+        prefix = ""
+    typewriter(prefix + text, speed)
+
+
+def pause(msg: str = "[Enter para continuar]"):
+    try:
+        input(msg)
+    except EOFError:
+        # Em alguns ambientes sem stdin, apenas espera um pouco
+        time.sleep(0.5)
+
+
+def choice(options):
+    """Exibe opções e retorna o índice escolhido (0..n-1)."""
     while True:
-        resp = input(pergunta + " (s/n): ").strip().lower()
-        if resp in ("s", "sim"):  # Sim
-            return True
-        if resp in ("n", "nao", "não"):  # Não
-            return False
+        for i, opt in enumerate(options, start=1):
+            print(f"{i}) {opt}")
+        sel = input("> ").strip()
+        if sel.isdigit():
+            idx = int(sel) - 1
+            if 0 <= idx < len(options):
+                return idx
         print("Opção inválida. Tente novamente.")
 
 
-def obter_int(pergunta: str, minimo: int = None, maximo: int = None) -> int:
-    while True:
-        valor = input(pergunta).strip()
-        if not valor.isdigit():
-            print("Digite um número inteiro válido.")
-            continue
-        num = int(valor)
-        if minimo is not None and num < minimo:
-            print(f"O número deve ser >= {minimo}.")
-            continue
-        if maximo is not None and num > maximo:
-            print(f"O número deve ser <= {maximo}.")
-            continue
-        return num
+# ==========================
+#  História: Conhecendo Do Vale e JL
+# ==========================
 
 
-def jogo_adivinhacao() -> None:
-    linha()
-    print("Jogo: Adivinhe o Número")
-    print("Eu vou pensar em um número e você tentará adivinhar!")
+def titulo():
+    clear()
+    print("=" * 50)
+    print(" Visual Novel: Encontro no Corredor ")
+    print("=" * 50)
+    print()
+    typewriter("Do Vale e JL estão no corredor da escola.")
+    typewriter("Hoje, você vai conhecê-los.")
+    print()
+    pause()
 
-    limite_inferior = 1
-    limite_superior = 100
-    numero_secreto = random.randint(limite_inferior, limite_superior)
 
-    print(f"Pensei em um número entre {limite_inferior} e {limite_superior}.")
-    tentativas_max = 10
-    print(f"Você tem {tentativas_max} tentativas. Boa sorte!")
+def introducao(player_name: str):
+    clear()
+    say("Narrador", f"{player_name}, é hora do intervalo. O corredor está cheio de alunos.")
+    say("Narrador", "Você avista duas figuras conhecidas: Do Vale, concentrado em um cartaz do clube, e JL, animado conversando com um grupo.")
+    print()
 
-    for tentativa in range(1, tentativas_max + 1):
-        palpite = obter_int(f"Tentativa {tentativa}/{tentativas_max} - Seu palpite: ", limite_inferior, limite_superior)
 
-        if palpite == numero_secreto:
-            print("Parabéns! Você acertou o número!")
-            print(f"Você precisou de {tentativa} tentativa(s).")
-            break
-        elif palpite < numero_secreto:
-            print("Quase! O número é MAIOR.")
-        else:
-            print("Quase! O número é MENOR.")
+def cena_corredor(player_name: str):
+    say("Narrador", "Quem você quer abordar primeiro?")
+    op = choice(["Falar com Do Vale", "Falar com JL", "Ficar observando de longe"])
+    if op == 0:
+        return caminho_do_vale(player_name)
+    elif op == 1:
+        return caminho_jl(player_name)
     else:
-        print("\nQue pena! Suas tentativas acabaram.")
-        print(f"O número secreto era: {numero_secreto}")
-
-    linha()
-    input("Pressione ENTER para voltar ao menu...")
+        return caminho_observador(player_name)
 
 
-def calcular_vencedor_rps(jogador: str, computador: str) -> int:
-    # Retorna: 1 se jogador vence, -1 se perde, 0 se empata
-    regras = {
-        "pedra": "tesoura",
-        "papel": "pedra",
-        "tesoura": "papel",
-    }
-    if jogador == computador:
-        return 0
-    return 1 if regras[jogador] == computador else -1
-
-
-def escolher_opcao_rps(pergunta: str) -> str:
-    opcoes = {"1": "pedra", "2": "papel", "3": "tesoura"}
-    while True:
-        print("\nEscolha sua jogada:")
-        print("1) Pedra")
-        print("2) Papel")
-        print("3) Tesoura")
-        escolha = input(pergunta).strip()
-        if escolha in opcoes:
-            return opcoes[escolha]
-        if escolha.lower() in ("pedra", "papel", "tesoura"):
-            return escolha.lower()
-        print("Opção inválida. Tente novamente.")
-
-
-def jogo_pedra_papel_tesoura() -> None:
-    linha()
-    print("Jogo: Pedra, Papel, Tesoura")
-    print("Vença o computador em uma melhor de 5 rodadas!")
-
-    vitorias = 0
-    derrotas = 0
-    empates = 0
-
-    rodadas = 5
-    opcoes = ["pedra", "papel", "tesoura"]
-
-    for r in range(1, rodadas + 1):
-        print(f"\nRodada {r}/{rodadas}")
-        jogador = escolher_opcao_rps(
-            "Sua escolha (1-3 ou digite pedra/papel/tesoura): "
-        )
-        computador = random.choice(opcoes)
-        print(f"Você jogou: {jogador} | Computador jogou: {computador}")
-
-        resultado = calcular_vencedor_rps(jogador, computador)
-        if resultado == 1:
-            print("Você venceu a rodada!")
-            vitorias += 1
-        elif resultado == -1:
-            print("Você perdeu a rodada.")
-            derrotas += 1
-        else:
-            print("Rodada empatada.")
-            empates += 1
-
-    linha()
-    print("Placar final:")
-    print(f"Vitórias: {vitorias}")
-    print(f"Derrotas: {derrotas}")
-    print(f"Empates: {empates}")
-
-    if vitorias > derrotas:
-        print("Parabéns! Você venceu o jogo!")
-    elif vitorias < derrotas:
-        print("O computador venceu. Tente novamente!")
+def caminho_do_vale(player_name: str):
+    clear()
+    say("Narrador", "Você se aproxima de Do Vale. Ele percebe sua presença e sorri de leve.")
+    say("Do Vale", "Oi. Você viu o cartaz do clube? Estamos procurando novas ideias.")
+    say("Narrador", "Como você responde?")
+    op = choice([
+        "Oferecer ajuda com ideias para o clube",
+        "Perguntar mais sobre o que ele gosta",
+        "Dizer que está com pressa e sair",
+    ])
+    if op == 0:
+        say(player_name, "Eu adoraria ajudar! Tenho algumas ideias criativas.")
+        say("Do Vale", "Sério? Isso é ótimo. Podemos nos reunir depois da aula.")
+        say("Narrador", "Vocês trocam contatos e marcam uma conversa. Uma nova parceria começa.")
+        return final_amizade("Do Vale")
+    elif op == 1:
+        say(player_name, "O que você curte fazer no clube?")
+        say("Do Vale", "Gosto de organizar projetos e ver tudo funcionando. É satisfatório.")
+        say("Narrador", "Vocês conversam por um tempo e descobrem interesses em comum.")
+        return final_neutro("Do Vale")
     else:
-        print("Empate geral!")
-
-    linha()
-    input("Pressione ENTER para voltar ao menu...")
-
-
-def mostrar_menu() -> None:
-    linha()
-    print("Bem-vindo ao Mini Arcade Python! 🎮")
-    print("Escolha um jogo para começar:")
-    print("1) Adivinhe o Número")
-    print("2) Pedra, Papel, Tesoura")
-    print("3) Sair")
+        say(player_name, "Desculpa, lembrei de um compromisso. Até mais!")
+        say("Do Vale", "Sem problemas. Até.")
+        say("Narrador", "Você se afasta, sentindo que perdeu uma oportunidade.")
+        return final_distante("Do Vale")
 
 
-def menu() -> None:
-    while True:
-        mostrar_menu()
-        opcao = input("Sua opção: ").strip()
-        if opcao == "1":
-            jogo_adivinhacao()
-        elif opcao == "2":
-            jogo_pedra_papel_tesoura()
-        elif opcao == "3":
-            print("Até a próxima! 👋")
-            break
-        else:
-            print("Opção inválida. Tente novamente.")
+def caminho_jl(player_name: str):
+    clear()
+    say("Narrador", "Você se aproxima de JL, que está rindo de uma piada.")
+    say("JL", "E aí! Chegou na hora certa. Vamos fazer algo depois da aula?")
+    say("Narrador", "Qual a sua reação?")
+    op = choice([
+        "Aceitar e sugerir um jogo/atividade",
+        "Perguntar sobre os interesses de JL",
+        "Recusar educadamente",
+    ])
+    if op == 0:
+        say(player_name, "Topo! Que tal um jogo rápido ou um projeto divertido?")
+        say("JL", "Perfeito! Adoro essa energia. Fechado!")
+        say("Narrador", "Vocês combinam detalhes e parecem se dar muito bem.")
+        return final_amizade("JL")
+    elif op == 1:
+        say(player_name, "O que você curte fazer no tempo livre?")
+        say("JL", "Eu gosto de juntar a galera e testar ideias novas. É sempre animado!")
+        say("Narrador", "A conversa flui leve e descontraída.")
+        return final_neutro("JL")
+    else:
+        say(player_name, "Pô, hoje não vou conseguir. Mas valeu o convite!")
+        say("JL", "Tranquilo! Fica pra próxima.")
+        say("Narrador", "Você se despede, mas sente que poderia ter sido diferente.")
+        return final_distante("JL")
+
+
+def caminho_observador(player_name: str):
+    clear()
+    say("Narrador", "Você decide observar um pouco. A movimentação do corredor te distrai.")
+    say("Narrador", "Quando percebe, o sinal toca e todos começam a se dispersar.")
+    say("Narrador", "Ainda dá tempo para uma atitude.")
+    op = choice(["Ir até Do Vale antes da aula", "Caminhar até JL rapidamente", "Deixar para outro dia"])
+    if op == 0:
+        return caminho_do_vale(player_name)
+    elif op == 1:
+        return caminho_jl(player_name)
+    else:
+        say("Narrador", "Você respira fundo e decide esperar. Talvez amanhã.")
+        return final_reflexivo()
+
+
+# ==========================
+#  Finais
+# ==========================
+
+
+def final_amizade(personagem: str):
+    print()
+    say("Final", f"Uma nova amizade com {personagem} floresce.")
+    say("Final", "Vocês planejam algo juntos e a história está só começando.")
+    return "Amizade"
+
+
+def final_neutro(personagem: str):
+    print()
+    say("Final", f"Você e {personagem} se conhecem melhor. O futuro é promissor.")
+    return "Neutro"
+
+
+def final_distante(personagem: str):
+    print()
+    say("Final", f"{personagem} ficou um pouco distante. Talvez outra oportunidade apareça.")
+    return "Distante"
+
+
+def final_reflexivo():
+    print()
+    say("Final", "Você escolhe esperar. Às vezes, o momento certo ainda vai chegar.")
+    return "Reflexivo"
+
+
+# ==========================
+#  Loop principal
+# ==========================
+
+
+def main():
+    titulo()
+    clear()
+    print("Configurações rápidas:")
+    print("1) Texto normal (efeito de digitação)")
+    print("2) Texto rápido (sem efeito)")
+    modo = input("> ").strip()
+    global TYPE_SPEED
+    if modo == "2":
+        TYPE_SPEED = 0
+
+    clear()
+    player_name = input("Seu nome: ").strip() or "Você"
+    introducao(player_name)
+    fim = cena_corredor(player_name)
+
+    print()
+    print("=" * 50)
+    print(f"FIM - Rota: {fim}")
+    print("=" * 50)
+    print()
+    say("Narrador", "Deseja jogar novamente?")
+    if choice(["Sim", "Não"]) == 0:
+        main()
+    else:
+        say("Narrador", "Obrigado por jogar!")
 
 
 if __name__ == "__main__":
     try:
-        menu()
+        main()
     except KeyboardInterrupt:
-        print("\nEncerrando. Até logo!")
-        sys.exit(0)
-bojekefugsdubiishubaiu
+        print("\nSaindo...")
+
