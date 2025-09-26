@@ -16,8 +16,16 @@ print(f"{self.modelo} reduziu para {self.velocidade} km/h.")
 def detalhes(self):
  return (f"{self.marca} {self.modelo} ({self.ano}) - " f"Cor: {self.cor}, Velocidade: {self.velocidade} km/h")
     
+carro1 = Carro("Toyota", "Corolla", 2020, "Preto")
+carro2 = Carro("Honda", "Civic", 2019, "Vermelho")
 
-
-
+print(carro1.detalhes())
+print(carro2.detalhes())
+carro1.acelerar(50)
+carro2.acelerar(30)
+carro1.frear(20)
+carro2.frear(15)
+print(carro1.detalhes())
+print(carro2.detalhes())
     
     
