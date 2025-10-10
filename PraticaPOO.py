@@ -14,4 +14,5 @@ class console:
     
         return f"Esse é o seu {self.game}, favorito e a marca é {self.marca} uma das maiores do mercado, e o seu console é {self.geração} geração, o ano de lançamento do console é de{self.AnoDeLançamento}, é a sua nota final é de {self.nota}"
 cs = console()
+
 print(cs.descrever())
