@@ -6,7 +6,7 @@ class Animal:
         self.tamanho = tamanho
     
     def emitir_som(self):
-        return "Som genérico de animal"
+        return None
     
     def descrever(self):
         return f"""
@@ -46,7 +46,7 @@ class Mamifero(Animal):
         return "Som de mamífero"
 
 if __name__ == "__main__":
-    # Criando instâncias
+
     animais = [
         Animal("Animal Genérico", "Animalia", "Marrom", "Médio"),
         Reptil("Cobra", "Réptil", "Verde", "2 metros"),
